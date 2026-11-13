@@ -1,4 +1,12 @@
 export type ListView = { kind: 'list' };
+
+export type LinkedListNode = { id: string; data: number; next: string | null };
+export type LinkedListView = {
+  kind: 'linkedList';
+  head: string | null;
+  nodes: LinkedListNode[];
+  capacity: number;
+};
 export type StackView = {
   kind: 'stack';
   items: { id: string; value: number }[];
@@ -13,5 +21,5 @@ export type Step = {
   highlights: string[];
   counters: { visited: number; changes: number };
   error?: string;
-  view: ListView | StackView | QueueView;
+  view: ListView | StackView | QueueView | LinkedListView;
 };
