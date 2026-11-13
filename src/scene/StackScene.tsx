@@ -1,4 +1,7 @@
+import { useEffect, useRef } from 'react';
+import { useFrame, useThree } from '@react-three/fiber';
 import { Text, OrbitControls } from '@react-three/drei';
+import * as THREE from 'three';
 import { usePlaygroundStore } from '../store/usePlaygroundStore';
 import type { StackView } from '../engine/types';
 
@@ -8,10 +11,10 @@ const BLOCK_D = 1.8;
 const GAP = 0.05;
 const BASE_H = 0.15;
 
-const COLOR_DEFAULT = '#4f86c6';
-const COLOR_HIGHLIGHT = '#f5a623';
-const COLOR_BASE = '#555555';
-const COLOR_ERROR = '#e53e3e';
+const COLOR_DEFAULT = '#60a5fa';
+const COLOR_HIGHLIGHT = '#fbbf24';
+const COLOR_BASE = '#7a7a8a';
+const COLOR_ERROR = '#f87171';
 
 function StackBlock({
   value,
@@ -32,15 +35,46 @@ function StackBlock({
       {/* value label on front face */}
       <Text
         position={[0, 0, BLOCK_D / 2 + 0.01]}
-        fontSize={0.35}
+        fontSize={0.38}
         color="#ffffff"
+        font={undefined}
         anchorX="center"
         anchorY="middle"
+        outlineWidth={0.03}
+        outlineColor="#000000"
       >
         {String(value)}
       </Text>
     </group>
   );
+}
+
+// Stack total height: BASE_H + capacity * (BLOCK_H + GAP)
+// Camera target: midpoint of that height
+// Camera distance: scales with capacity
+function CameraRig() {
+  const { camera, controls } = useThree() as { camera: THREE.PerspectiveCamera; controls: unknown };
+  const capacity = usePlaygroundStore((s) => s.capacity);
+  const targetRef = useRef(new THREE.Vector3());
+
+  useEffect(() => {
+    const stackH = BASE_H + capacity * (BLOCK_H + GAP);
+    const midY = stackH / 2;
+    const dist = 3 + capacity * 0.9;
+    camera.position.set(0, midY, dist);
+    camera.lookAt(0, midY, 0);
+    targetRef.current.set(0, midY, 0);
+  }, [capacity, camera]);
+
+  // keep OrbitControls target in sync after capacity change
+  useFrame(() => {
+    const ctrl = controls as { target?: THREE.Vector3; update?: () => void } | null;
+    if (ctrl?.target) {
+      ctrl.target.lerp(targetRef.current, 0.15);
+    }
+  });
+
+  return null;
 }
 
 function StackBase() {
@@ -63,9 +97,11 @@ export default function StackScene() {
 
   return (
     <>
-      <ambientLight intensity={0.6} />
-      <directionalLight position={[5, 8, 5]} intensity={0.8} />
-      <OrbitControls />
+      <CameraRig />
+      <ambientLight intensity={1.1} />
+      <directionalLight position={[5, 8, 5]} intensity={1.2} />
+      <directionalLight position={[-4, 6, -3]} intensity={0.5} />
+      <OrbitControls makeDefault />
 
       <StackBase />
 

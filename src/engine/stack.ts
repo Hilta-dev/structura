@@ -51,38 +51,39 @@ export function push(
   const steps: Step[] = [];
   let id = 0;
 
-  // line 1 – enter procedure
+  // line 1 – enter push
   steps.push(
-    step(id++, 1, `Call PUSH with value ${value}.`, ['top'], { visited: 0, changes: 0 }, items, capacity),
+    step(id++, 1, `Call push with data = ${value}.`, ['top'], { visited: 0, changes: 0 }, items, capacity),
   );
 
-  // line 2 – check overflow
+  // line 2 – check if top == size - 1 (stack full)
+  const top = items.length - 1;
   steps.push(
-    step(id++, 2, `Check if stack is full (size ${items.length} of ${capacity}).`, ['top', 'capacity'], { visited: 1, changes: 0 }, items, capacity),
+    step(id++, 2, `Check: top (${top}) == size - 1 (${capacity - 1})?`, ['top'], { visited: 1, changes: 0 }, items, capacity),
   );
 
   if (items.length >= capacity) {
-    // line 3 – overflow error
+    // line 3 – display "Stack is full!"
     steps.push(
-      step(id++, 3, `Stack is full. Cannot push ${value}.`, ['top', 'capacity'], { visited: 1, changes: 0 }, items, capacity, 'stack overflow'),
+      step(id++, 3, 'Stack is full!', ['top'], { visited: 1, changes: 0 }, items, capacity, 'stack overflow'),
     );
     return steps;
   }
 
-  // line 5 – increment top
+  // line 5 – top++
   steps.push(
-    step(id++, 5, `Increment top pointer from ${items.length} to ${items.length + 1}.`, ['top'], { visited: 1, changes: 0 }, items, capacity),
+    step(id++, 5, `top++ → top is now ${items.length}.`, ['top'], { visited: 1, changes: 0 }, items, capacity),
   );
 
-  // line 6 – write value; build new items array (no mutation)
+  // line 6 – stack[top] = data; build new items array (no mutation)
   const newItems: StackItem[] = [...items, { id: newId(), value }];
   steps.push(
-    step(id++, 6, `Write ${value} at the new top position.`, ['top'], { visited: 1, changes: 1 }, newItems, capacity),
+    step(id++, 6, `stack[top] = ${value}. Element inserted at top.`, ['top'], { visited: 1, changes: 1 }, newItems, capacity),
   );
 
-  // line 7 – done
+  // line 8 – end of push
   steps.push(
-    step(id++, 7, `PUSH complete. Stack now has ${newItems.length} item(s).`, [], { visited: 1, changes: 1 }, newItems, capacity),
+    step(id++, 8, `push complete. Stack now has ${newItems.length} item(s).`, [], { visited: 1, changes: 1 }, newItems, capacity),
   );
 
   return steps;
@@ -96,40 +97,41 @@ export function pop(items: StackItem[], capacity: number): Step[] {
   const steps: Step[] = [];
   let id = 0;
 
-  // line 1 – enter procedure
+  // line 1 – enter pop
   steps.push(
-    step(id++, 1, 'Call POP.', ['top'], { visited: 0, changes: 0 }, items, capacity),
+    step(id++, 1, 'Call pop.', ['top'], { visited: 0, changes: 0 }, items, capacity),
   );
 
-  // line 2 – check underflow
+  // line 2 – check if top == -1 (stack empty)
+  const top = items.length - 1;
   steps.push(
-    step(id++, 2, `Check if stack is empty (size ${items.length}).`, ['top'], { visited: 1, changes: 0 }, items, capacity),
+    step(id++, 2, `Check: top (${top}) == -1?`, ['top'], { visited: 1, changes: 0 }, items, capacity),
   );
 
   if (items.length === 0) {
-    // line 3 – underflow error
+    // line 3 – display "Stack is empty!"
     steps.push(
-      step(id++, 3, 'Stack is empty. Cannot pop.', ['top'], { visited: 1, changes: 0 }, items, capacity, 'stack underflow'),
+      step(id++, 3, 'Stack is empty!', ['top'], { visited: 1, changes: 0 }, items, capacity, 'stack underflow'),
     );
     return steps;
   }
 
   const topItem = items[items.length - 1];
 
-  // line 5 – read value
+  // line 5 – poppedElement = stack[top]
   steps.push(
-    step(id++, 5, `Read value ${topItem.value} from the top.`, ['top'], { visited: 2, changes: 0 }, items, capacity),
+    step(id++, 5, `poppedElement = stack[top] = ${topItem.value}.`, ['top'], { visited: 2, changes: 0 }, items, capacity),
   );
 
-  // line 6 – decrement top; build new items array (no mutation)
+  // line 6 – top--; build new items array (no mutation)
   const newItems: StackItem[] = items.slice(0, -1);
   steps.push(
-    step(id++, 6, `Decrement top pointer from ${items.length} to ${newItems.length}.`, ['top'], { visited: 2, changes: 1 }, newItems, capacity),
+    step(id++, 6, `top-- → top is now ${newItems.length - 1}.`, ['top'], { visited: 2, changes: 1 }, newItems, capacity),
   );
 
-  // line 7 – return
+  // line 7 – display popped element
   steps.push(
-    step(id++, 7, `POP complete. Removed ${topItem.value}. Stack now has ${newItems.length} item(s).`, [], { visited: 2, changes: 1 }, newItems, capacity),
+    step(id++, 7, `The popped element is: ${topItem.value}. Stack now has ${newItems.length} item(s).`, [], { visited: 2, changes: 1 }, newItems, capacity),
   );
 
   return steps;
@@ -143,29 +145,30 @@ export function peek(items: StackItem[], capacity: number): Step[] {
   const steps: Step[] = [];
   let id = 0;
 
-  // line 1 – enter procedure
+  // line 1 – enter peek
   steps.push(
-    step(id++, 1, 'Call PEEK.', ['top'], { visited: 0, changes: 0 }, items, capacity),
+    step(id++, 1, 'Call peek.', ['top'], { visited: 0, changes: 0 }, items, capacity),
   );
 
-  // line 2 – check underflow
+  // line 2 – check if top == -1 (stack empty)
+  const top = items.length - 1;
   steps.push(
-    step(id++, 2, `Check if stack is empty (size ${items.length}).`, ['top'], { visited: 1, changes: 0 }, items, capacity),
+    step(id++, 2, `Check: top (${top}) == -1?`, ['top'], { visited: 1, changes: 0 }, items, capacity),
   );
 
   if (items.length === 0) {
-    // line 3 – underflow error
+    // line 3 – display "Stack is empty!"
     steps.push(
-      step(id++, 3, 'Stack is empty. Nothing to peek.', ['top'], { visited: 1, changes: 0 }, items, capacity, 'stack underflow'),
+      step(id++, 3, 'Stack is empty!', ['top'], { visited: 1, changes: 0 }, items, capacity, 'stack underflow'),
     );
     return steps;
   }
 
   const topItem = items[items.length - 1];
 
-  // line 5 – return value (no change to items)
+  // line 5 – display top element (no change to items)
   steps.push(
-    step(id++, 5, `Top value is ${topItem.value}. Stack is unchanged.`, ['top'], { visited: 1, changes: 0 }, items, capacity),
+    step(id++, 5, `Top element is: stack[top] = ${topItem.value}.`, ['top'], { visited: 1, changes: 0 }, items, capacity),
   );
 
   return steps;

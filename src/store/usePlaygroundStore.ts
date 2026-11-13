@@ -4,6 +4,7 @@ import type { Step } from '../engine/types';
 type State = {
   steps: Step[];
   pseudocode: readonly string[];
+  capacity: number;
   currentStep: number;
   isPlaying: boolean;
   speed: number;
@@ -17,11 +18,13 @@ type Actions = {
   play: () => void;
   pause: () => void;
   setSpeed: (speed: number) => void;
+  setCapacity: (capacity: number) => void;
 };
 
 export const usePlaygroundStore = create<State & Actions>((set, get) => ({
   steps: [],
   pseudocode: [],
+  capacity: 8,
   currentStep: 0,
   isPlaying: false,
   speed: 1,
@@ -54,4 +57,6 @@ export const usePlaygroundStore = create<State & Actions>((set, get) => ({
   pause: () => set({ isPlaying: false }),
 
   setSpeed: (speed) => set({ speed }),
+
+  setCapacity: (capacity) => set({ capacity }),
 }));

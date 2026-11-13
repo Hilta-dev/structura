@@ -2,37 +2,40 @@
 // codeLine values in stack.ts refer to 1-based line numbers within each array.
 
 export const pushPseudocode: readonly string[] = [
-  'procedure PUSH(stack, value)',   // 1
-  '  if stack.size = stack.capacity then', // 2
-  '    error "stack overflow"',     // 3
-  '  end if',                       // 4
-  '  stack.top ← stack.top + 1',   // 5
-  '  stack[stack.top] ← value',    // 6
-  'end procedure',                  // 7
+  'push(data){',                              // 1
+  '  IF(top == size - 1) THEN //check if the stack is full', // 2
+  '    DISPLAY "Stack is full!"',             // 3
+  '  ELSE',                                   // 4
+  '    top++ //move top up by one',           // 5
+  '    stack[top] = data //insert element in stack', // 6
+  '  ENDIF',                                  // 7
+  '}',                                        // 8
 ];
 
 export const popPseudocode: readonly string[] = [
-  'procedure POP(stack)',            // 1
-  '  if stack.top = 0 then',        // 2
-  '    error "stack underflow"',    // 3
-  '  end if',                       // 4
-  '  value ← stack[stack.top]',    // 5
-  '  stack.top ← stack.top - 1',   // 6
-  '  return value',                 // 7
-  'end procedure',                  // 8
+  'pop(){',                                   // 1
+  '  IF(top == -1) THEN //check if the stack is empty', // 2
+  '    DISPLAY "Stack is empty!"',            // 3
+  '  ELSE',                                   // 4
+  '    poppedElement = stack[top]',           // 5
+  '    top-- //remove top element',           // 6
+  '    DISPLAY "The popped element is: " + poppedElement', // 7
+  '  ENDIF',                                  // 8
+  '}',                                        // 9
 ];
 
 export const peekPseudocode: readonly string[] = [
-  'procedure PEEK(stack)',           // 1
-  '  if stack.top = 0 then',        // 2
-  '    error "stack underflow"',    // 3
-  '  end if',                       // 4
-  '  return stack[stack.top]',     // 5
-  'end procedure',                  // 6
+  'peek(){',                                  // 1
+  '  IF(top == -1) THEN //check if the stack is empty', // 2
+  '    DISPLAY "Stack is empty!"',            // 3
+  '  ELSE',                                   // 4
+  '    DISPLAY "Top element is: " + stack[top] //display top element', // 5
+  '  ENDIF',                                  // 6
+  '}',                                        // 7
 ];
 
 export const isEmptyPseudocode: readonly string[] = [
   'procedure IS_EMPTY(stack)',       // 1
-  '  return stack.top = 0',         // 2
+  '  return top == -1',             // 2
   'end procedure',                  // 3
 ];

@@ -10,10 +10,6 @@ beforeEach(() => {
   _resetId();
 });
 
-// ---------------------------------------------------------------------------
-// push
-// ---------------------------------------------------------------------------
-
 describe('push', () => {
   it('adds a step sequence ending with the new item on top', () => {
     const steps = push([], 3, 10);
@@ -70,10 +66,6 @@ describe('push', () => {
   });
 });
 
-// ---------------------------------------------------------------------------
-// pop
-// ---------------------------------------------------------------------------
-
 describe('pop', () => {
   it('removes the top item', () => {
     const items = [{ id: '1', value: 10 }, { id: '2', value: 20 }];
@@ -107,11 +99,12 @@ describe('pop', () => {
     steps.forEach((s, i) => expect(s.id).toBe(i));
   });
 
-  it('explanation mentions the removed value', () => {
+  it('explanation mentions the popped value', () => {
     const items = [{ id: '1', value: 42 }];
     const steps = pop(items, 3);
     const last = steps[steps.length - 1];
     expect(last.explanation).toContain('42');
+    expect(last.explanation).toContain('popped element');
   });
 
   it('counters track visited and changes', () => {
@@ -122,10 +115,6 @@ describe('pop', () => {
     expect(last.counters.visited).toBeGreaterThan(0);
   });
 });
-
-// ---------------------------------------------------------------------------
-// peek
-// ---------------------------------------------------------------------------
 
 describe('peek', () => {
   it('returns the top value without removing it', () => {
@@ -156,6 +145,7 @@ describe('peek', () => {
     const steps = peek(items, 3);
     const last = steps[steps.length - 1];
     expect(last.explanation).toContain('55');
+    expect(last.explanation).toContain('Top element');
   });
 
   it('assigns sequential step ids starting at 0', () => {
@@ -164,10 +154,6 @@ describe('peek', () => {
     steps.forEach((s, i) => expect(s.id).toBe(i));
   });
 });
-
-// ---------------------------------------------------------------------------
-// isEmpty
-// ---------------------------------------------------------------------------
 
 describe('isEmpty', () => {
   it('returns two steps for an empty stack, last explanation says true', () => {

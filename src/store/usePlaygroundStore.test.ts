@@ -16,7 +16,7 @@ function makeStep(id: number): Step {
 const steps = [makeStep(0), makeStep(1), makeStep(2)];
 
 beforeEach(() => {
-  usePlaygroundStore.setState({ steps: [], pseudocode: [], currentStep: 0, isPlaying: false, speed: 1 });
+  usePlaygroundStore.setState({ steps: [], pseudocode: [], capacity: 8, currentStep: 0, isPlaying: false, speed: 1 });
 });
 
 describe('loadSteps', () => {
