@@ -1,5 +1,9 @@
 export type ListView = { kind: 'list' };
-export type StackView = { kind: 'stack' };
+export type StackView = {
+  kind: 'stack';
+  items: { id: string; value: number }[];
+  capacity: number;
+};
 export type QueueView = { kind: 'queue' };
 
 export type Step = {

@@ -19,3 +19,6 @@ A 3D playground for lists, stacks and queues, with an AI tutor.
 ## Working style
 - One small piece at a time. Run it. Commit it.
 - Do not rewrite whole files. Change only what is needed.
+
+- Comments: plain short // comments only, and only where the code is not obvious.
+  No decorative banners or divider lines (no // ------ or // ======).
