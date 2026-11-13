@@ -3,6 +3,7 @@ import { push, pop, peek } from '../engine/stack';
 import type { StackItem } from '../engine/stack';
 import type { StackView } from '../engine/types';
 import { usePlaygroundStore } from '../store/usePlaygroundStore';
+import { pushPseudocode, popPseudocode, peekPseudocode } from '../lessons/stackPseudocode';
 
 const CAPACITY = 8;
 
@@ -11,8 +12,8 @@ export default function StackControls() {
   const [inputValue, setInputValue] = useState('');
   const loadSteps = usePlaygroundStore((s) => s.loadSteps);
 
-  function commitOperation(steps: ReturnType<typeof push>) {
-    loadSteps(steps);
+  function commitOperation(steps: ReturnType<typeof push>, pseudocode: readonly string[]) {
+    loadSteps(steps, pseudocode);
     const last = steps[steps.length - 1];
     // only update items when the operation succeeded (no error)
     if (!last.error) {
@@ -23,16 +24,16 @@ export default function StackControls() {
   function handlePush() {
     const val = parseInt(inputValue, 10);
     if (isNaN(val)) return;
-    commitOperation(push(items, CAPACITY, val));
+    commitOperation(push(items, CAPACITY, val), pushPseudocode);
     setInputValue('');
   }
 
   function handlePop() {
-    commitOperation(pop(items, CAPACITY));
+    commitOperation(pop(items, CAPACITY), popPseudocode);
   }
 
   function handlePeek() {
-    commitOperation(peek(items, CAPACITY));
+    commitOperation(peek(items, CAPACITY), peekPseudocode);
   }
 
   return (

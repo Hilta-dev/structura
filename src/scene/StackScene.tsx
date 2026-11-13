@@ -43,8 +43,7 @@ function StackBlock({
   );
 }
 
-function StackBase({ capacity }: { capacity: number }) {
-  const totalH = capacity * (BLOCK_H + GAP);
+function StackBase() {
   return (
     <mesh position={[0, BASE_H / 2, 0]}>
       <boxGeometry args={[BLOCK_W + 0.1, BASE_H, BLOCK_D + 0.1]} />
@@ -58,12 +57,9 @@ export default function StackScene() {
   const currentStep = usePlaygroundStore((s) => s.currentStep);
 
   const step = steps[currentStep];
-  if (!step || step.view.kind !== 'stack') return null;
-
-  const view = step.view as StackView;
-  const highlights = new Set(step.highlights);
-
-  const errorY = BASE_H + view.capacity * (BLOCK_H + GAP) + 0.6;
+  const view = (step?.view.kind === 'stack' ? step.view : null) as StackView | null;
+  const highlights = new Set(step?.highlights ?? []);
+  const errorY = BASE_H + (view?.capacity ?? 8) * (BLOCK_H + GAP) + 0.6;
 
   return (
     <>
@@ -71,9 +67,9 @@ export default function StackScene() {
       <directionalLight position={[5, 8, 5]} intensity={0.8} />
       <OrbitControls />
 
-      <StackBase capacity={view.capacity} />
+      <StackBase />
 
-      {view.items.map((item, i) => (
+      {view?.items.map((item, i) => (
         <StackBlock
           key={item.id}
           value={item.value}
@@ -82,7 +78,7 @@ export default function StackScene() {
         />
       ))}
 
-      {step.error && (
+      {step?.error && (
         <Text
           position={[0, errorY, 0]}
           fontSize={0.3}

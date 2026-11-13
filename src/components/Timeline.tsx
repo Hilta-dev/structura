@@ -49,7 +49,7 @@ export default function Timeline() {
         disabled={total === 0 || atEnd}
         className="rounded bg-gray-600 px-3 py-1 hover:bg-gray-500 disabled:opacity-40"
       >
-        ▶
+        ▶|
       </button>
 
       <input

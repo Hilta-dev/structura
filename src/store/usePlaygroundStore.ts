@@ -3,13 +3,14 @@ import type { Step } from '../engine/types';
 
 type State = {
   steps: Step[];
+  pseudocode: readonly string[];
   currentStep: number;
   isPlaying: boolean;
   speed: number;
 };
 
 type Actions = {
-  loadSteps: (steps: Step[]) => void;
+  loadSteps: (steps: Step[], pseudocode: readonly string[]) => void;
   next: () => void;
   prev: () => void;
   goTo: (index: number) => void;
@@ -20,11 +21,12 @@ type Actions = {
 
 export const usePlaygroundStore = create<State & Actions>((set, get) => ({
   steps: [],
+  pseudocode: [],
   currentStep: 0,
   isPlaying: false,
   speed: 1,
 
-  loadSteps: (steps) => set({ steps, currentStep: 0, isPlaying: false }),
+  loadSteps: (steps, pseudocode) => set({ steps, pseudocode, currentStep: 0, isPlaying: false }),
 
   next: () => {
     const { currentStep, steps } = get();
