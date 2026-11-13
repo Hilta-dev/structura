@@ -1,11 +1,21 @@
 import { beforeEach, describe, expect, it } from 'vitest';
-import { _resetId, insertAtBeginning, insertAtEnd, insertAfterPosition } from './linkedList';
+import {
+  _resetId,
+  insertAtBeginning, insertAtEnd, insertAfterPosition,
+  deleteAtBeginning, deleteAtEnd, deleteAtPosition,
+  traverse, find,
+} from './linkedList';
 import type { LLState } from './linkedList';
 import type { LinkedListView } from './types';
 import {
   insertAtBeginningPseudocode,
   insertAtEndPseudocode,
   insertAfterPositionPseudocode,
+  deleteAtBeginningPseudocode,
+  deleteAtEndPseudocode,
+  deleteAtPositionPseudocode,
+  traversePseudocode,
+  findPseudocode,
 } from '../lessons/linkedListPseudocode';
 
 function llView(step: { view: unknown }): LinkedListView {
@@ -206,5 +216,183 @@ describe('insertAfterPosition', () => {
     const last = steps[steps.length - 1] as { tempPath: string[] };
     // tempPath should have visited at least 2 nodes (pos 1 and pos 2)
     expect(last.tempPath.length).toBeGreaterThanOrEqual(2);
+  });
+});
+
+describe('deleteAtBeginning', () => {
+  it('[5, 2, 8, 9]: result is [2, 8, 9]', () => {
+    const state = buildList([5, 2, 8, 9]);
+    const steps = deleteAtBeginning(state, 8);
+    const last = steps[steps.length - 1];
+    expect(dataOrder(llView(last))).toEqual([2, 8, 9]);
+  });
+
+  it('empty list: "List is empty!"', () => {
+    const steps = deleteAtBeginning(EMPTY, 8);
+    const last = steps[steps.length - 1];
+    expect(last.error).toBe('List is empty!');
+  });
+
+  it('assigns sequential step ids starting at 0', () => {
+    const state = buildList([1]);
+    const steps = deleteAtBeginning(state, 8);
+    steps.forEach((s, i) => expect(s.id).toBe(i));
+  });
+
+  it('pseudocode array starts with IF(head == NULL)', () => {
+    expect(deleteAtBeginningPseudocode[0]).toContain('IF(head == NULL)');
+  });
+});
+
+describe('deleteAtEnd', () => {
+  it('[5, 2, 8, 9]: result is [5, 2, 8]', () => {
+    const state = buildList([5, 2, 8, 9]);
+    const steps = deleteAtEnd(state, 8);
+    const last = steps[steps.length - 1];
+    expect(dataOrder(llView(last))).toEqual([5, 2, 8]);
+  });
+
+  it('one-node list: head becomes null', () => {
+    const state = buildList([42]);
+    const steps = deleteAtEnd(state, 8);
+    const last = steps[steps.length - 1];
+    expect(llView(last).head).toBeNull();
+    expect(llView(last).nodes).toHaveLength(0);
+  });
+
+  it('empty list: "List is empty!"', () => {
+    const steps = deleteAtEnd(EMPTY, 8);
+    const last = steps[steps.length - 1];
+    expect(last.error).toBe('List is empty!');
+  });
+
+  it('assigns sequential step ids starting at 0', () => {
+    const state = buildList([1, 2]);
+    const steps = deleteAtEnd(state, 8);
+    steps.forEach((s, i) => expect(s.id).toBe(i));
+  });
+
+  it('pseudocode array has the right number of lines', () => {
+    expect(deleteAtEndPseudocode.length).toBeGreaterThan(0);
+    expect(deleteAtEndPseudocode[0]).toContain('IF(head == NULL)');
+  });
+});
+
+describe('deleteAtPosition', () => {
+  it('[5, 2, 8, 9], deleteAtPosition(3): result is [5, 2, 9]', () => {
+    const state = buildList([5, 2, 8, 9]);
+    const steps = deleteAtPosition(state, 8, 3);
+    const last = steps[steps.length - 1];
+    expect(dataOrder(llView(last))).toEqual([5, 2, 9]);
+  });
+
+  it('[5, 2, 8, 9], deleteAtPosition(1): result is [2, 8, 9]', () => {
+    const state = buildList([5, 2, 8, 9]);
+    const steps = deleteAtPosition(state, 8, 1);
+    const last = steps[steps.length - 1];
+    expect(dataOrder(llView(last))).toEqual([2, 8, 9]);
+  });
+
+  it('[5, 2, 8, 9], deleteAtPosition(4): result is [5, 2, 8]', () => {
+    const state = buildList([5, 2, 8, 9]);
+    const steps = deleteAtPosition(state, 8, 4);
+    const last = steps[steps.length - 1];
+    expect(dataOrder(llView(last))).toEqual([5, 2, 8]);
+  });
+
+  it('[5, 2, 8, 9], position 0: "Invalid position!" and list unchanged', () => {
+    const state = buildList([5, 2, 8, 9]);
+    const steps = deleteAtPosition(state, 8, 0);
+    const last = steps[steps.length - 1];
+    expect(last.error).toBe('Invalid position!');
+    expect(llView(last).nodes).toHaveLength(4);
+  });
+
+  it('[5, 2, 8, 9], position 5: "Invalid position!" and list unchanged', () => {
+    const state = buildList([5, 2, 8, 9]);
+    const steps = deleteAtPosition(state, 8, 5);
+    const last = steps[steps.length - 1];
+    expect(last.error).toBe('Invalid position!');
+    expect(llView(last).nodes).toHaveLength(4);
+  });
+
+  it('empty list: "List is empty!"', () => {
+    const steps = deleteAtPosition(EMPTY, 8, 1);
+    const last = steps[steps.length - 1];
+    expect(last.error).toBe('List is empty!');
+  });
+
+  it('assigns sequential step ids starting at 0', () => {
+    const state = buildList([1, 2, 3]);
+    const steps = deleteAtPosition(state, 8, 2);
+    steps.forEach((s, i) => expect(s.id).toBe(i));
+  });
+
+  it('pseudocode array has the right number of lines', () => {
+    expect(deleteAtPositionPseudocode.length).toBeGreaterThan(0);
+    expect(deleteAtPositionPseudocode[0]).toContain('IF(head == NULL)');
+  });
+});
+
+describe('traverse', () => {
+  it('[5, 2, 8, 9]: returns values 5, 2, 8, 9 in order and tempPath has 4 ids', () => {
+    const state = buildList([5, 2, 8, 9]);
+    const steps = traverse(state, 8);
+    const last = steps[steps.length - 1] as { tempPath: string[] };
+    // last step is ENDWHILE — view still shows original list
+    expect(dataOrder(llView(steps[steps.length - 1]))).toEqual([5, 2, 8, 9]);
+    expect(last.tempPath).toHaveLength(4);
+  });
+
+  it('empty list: "List is empty!"', () => {
+    const steps = traverse(EMPTY, 8);
+    const last = steps[steps.length - 1];
+    expect(last.error).toBe('List is empty!');
+  });
+
+  it('assigns sequential step ids starting at 0', () => {
+    const state = buildList([1, 2]);
+    const steps = traverse(state, 8);
+    steps.forEach((s, i) => expect(s.id).toBe(i));
+  });
+
+  it('pseudocode array has the right lines', () => {
+    expect(traversePseudocode.length).toBeGreaterThan(0);
+    expect(traversePseudocode[5]).toContain('DISPLAY temp -> data');
+  });
+});
+
+describe('find', () => {
+  it('[5, 2, 8, 9], find(8): found=true, position=3, tempPath covers nodes 1-3', () => {
+    const state = buildList([5, 2, 8, 9]);
+    const steps = find(state, 8, 8);
+    const last = steps[steps.length - 1] as { tempPath: string[] };
+    expect(last.explanation).toContain('Found at position 3');
+    expect(last.tempPath.length).toBeGreaterThanOrEqual(3);
+  });
+
+  it('[5, 2, 8, 9], find(7): "Not found", tempPath covers all 4 nodes', () => {
+    const state = buildList([5, 2, 8, 9]);
+    const steps = find(state, 8, 7);
+    const last = steps[steps.length - 1] as { tempPath: string[] };
+    expect(last.explanation).toContain('not found');
+    expect(last.tempPath).toHaveLength(4);
+  });
+
+  it('empty list: "List is empty!"', () => {
+    const steps = find(EMPTY, 8, 5);
+    const last = steps[steps.length - 1];
+    expect(last.error).toBe('List is empty!');
+  });
+
+  it('assigns sequential step ids starting at 0', () => {
+    const state = buildList([1, 2, 3]);
+    const steps = find(state, 8, 2);
+    steps.forEach((s, i) => expect(s.id).toBe(i));
+  });
+
+  it('pseudocode array has the right number of lines', () => {
+    expect(findPseudocode.length).toBeGreaterThan(0);
+    expect(findPseudocode[6]).toContain('WHILE');
   });
 });
