@@ -6,14 +6,48 @@ import { usePlaygroundStore } from '../store/usePlaygroundStore';
 import { pushPseudocode, popPseudocode, peekPseudocode } from '../lessons/stackPseudocode';
 
 const EXAMPLE_VALUES = [5, 2, 3, 9, 8];
-const SIZE_OPTIONS = Array.from({ length: 10 }, (_, i) => i + 3); // 3–12
+const SIZE_OPTIONS   = Array.from({ length: 10 }, (_, i) => i + 3);
+
+const inputStyle: React.CSSProperties = {
+  background:   'var(--surface-2)',
+  border:       '1px solid var(--border)',
+  borderRadius: 'var(--r-sm)',
+  color:        'var(--text)',
+  fontSize:     12,
+  padding:      '4px 8px',
+  outline:      'none',
+};
+
+const primaryBtn: React.CSSProperties = {
+  background:   'var(--accent)',
+  border:       '1px solid var(--accent)',
+  borderRadius: 'var(--r-sm)',
+  color:        'var(--accent-text)',
+  fontSize:     12,
+  fontWeight:   600,
+  padding:      '4px 12px',
+  cursor:       'pointer',
+  flexShrink:   0,
+};
+
+const ghostBtn: React.CSSProperties = {
+  background:   'var(--surface-2)',
+  border:       '1px solid var(--border)',
+  borderRadius: 'var(--r-sm)',
+  color:        'var(--text-muted)',
+  fontSize:     12,
+  padding:      '4px 10px',
+  cursor:       'pointer',
+  flexShrink:   0,
+};
 
 export default function StackControls() {
-  const [items, setItems] = useState<StackItem[]>([]);
+  const [items, setItems]           = useState<StackItem[]>([]);
   const [inputValue, setInputValue] = useState('');
-  const capacity = usePlaygroundStore((s) => s.capacity);
+
+  const capacity  = usePlaygroundStore((s) => s.capacity);
   const loadSteps = usePlaygroundStore((s) => s.loadSteps);
-  const play = usePlaygroundStore((s) => s.play);
+  const play      = usePlaygroundStore((s) => s.play);
   const setCapacity = usePlaygroundStore((s) => s.setCapacity);
 
   function commitOperation(steps: ReturnType<typeof push>, pseudocode: readonly string[]) {
@@ -37,10 +71,7 @@ export default function StackControls() {
   }
 
   function handlePush() {
-    const values = inputValue
-      .split(/[\s,]+/)
-      .map((s) => parseInt(s, 10))
-      .filter((n) => !isNaN(n));
+    const values = inputValue.split(/[\s,]+/).map((s) => parseInt(s, 10)).filter((n) => !isNaN(n));
     if (values.length === 0) return;
     const allSteps = pushValues(values, capacity, items);
     loadSteps(allSteps, pushPseudocode);
@@ -50,18 +81,9 @@ export default function StackControls() {
     setInputValue('');
   }
 
-  function handlePop() {
-    commitOperation(pop(items, capacity), popPseudocode);
-  }
-
-  function handlePeek() {
-    commitOperation(peek(items, capacity), peekPseudocode);
-  }
-
-  function handleClear() {
-    setItems([]);
-    loadSteps([], []);
-  }
+  function handlePop()  { commitOperation(pop(items, capacity),  popPseudocode);  }
+  function handlePeek() { commitOperation(peek(items, capacity), peekPseudocode); }
+  function handleClear() { setItems([]); loadSteps([], []); }
 
   function handleExample() {
     const allSteps = pushValues(EXAMPLE_VALUES, capacity, []);
@@ -78,65 +100,45 @@ export default function StackControls() {
   }
 
   return (
-    <div className="flex flex-wrap items-center gap-3">
+    <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 6 }}>
+      {/* Section label */}
+      <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--text-dim)', marginRight: 4 }}>
+        Try an operation
+      </span>
+
       <input
         type="text"
         value={inputValue}
         onChange={(e) => setInputValue(e.target.value)}
         onKeyDown={(e) => e.key === 'Enter' && handlePush()}
-        placeholder="e.g. 5 2 3 9"
-        className="w-36 rounded bg-gray-700 px-2 py-1 text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+        placeholder="value(s)"
+        style={{ ...inputStyle, width: 100 }}
       />
-      <button
-        onClick={handlePush}
-        className="rounded bg-blue-600 px-3 py-1 text-sm text-white hover:bg-blue-500 active:bg-blue-700"
-      >
-        Push
-      </button>
-      <button
-        onClick={handlePop}
-        className="rounded bg-red-600 px-3 py-1 text-sm text-white hover:bg-red-500 active:bg-red-700"
-      >
-        Pop
-      </button>
-      <button
-        onClick={handlePeek}
-        className="rounded bg-yellow-600 px-3 py-1 text-sm text-white hover:bg-yellow-500 active:bg-yellow-700"
-      >
-        Peek
-      </button>
-      <button
-        onClick={handleExample}
-        className="rounded bg-purple-600 px-3 py-1 text-sm text-white hover:bg-purple-500 active:bg-purple-700"
-      >
-        Example
-      </button>
-      <button
-        onClick={handleClear}
-        className="rounded bg-gray-600 px-3 py-1 text-sm text-white hover:bg-gray-500 active:bg-gray-700"
-      >
-        Clear
-      </button>
 
-      <label className="flex items-center gap-1.5 text-xs text-gray-300 ml-2">
+      <button onClick={handlePush}    style={primaryBtn}>Push</button>
+      <button onClick={handlePop}     style={ghostBtn}>Pop</button>
+      <button onClick={handlePeek}    style={ghostBtn}>Peek</button>
+      <button onClick={handleExample} style={ghostBtn}>Example</button>
+      <button onClick={handleClear}   style={{ ...ghostBtn, color: 'var(--text-dim)' }}>Clear</button>
+
+      <label style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 11, color: 'var(--text-muted)', marginLeft: 4 }}>
         Size
         <select
           value={capacity}
           onChange={(e) => handleSizeChange(Number(e.target.value))}
-          className="rounded bg-gray-700 px-2 py-1 text-white text-sm focus:outline-none"
+          style={inputStyle}
         >
-          {SIZE_OPTIONS.map((n) => (
-            <option key={n} value={n}>{n}</option>
-          ))}
+          {SIZE_OPTIONS.map((n) => <option key={n} value={n}>{n}</option>)}
         </select>
       </label>
 
       {items.length === 0 && (
-        <span className="text-xs text-gray-500 italic">
-          Type a number and press Push to begin.
+        <span style={{ fontSize: 11, color: 'var(--text-dim)', fontStyle: 'italic' }}>
+          Type a number and press Push.
         </span>
       )}
-      <span className="ml-auto text-xs text-gray-400">
+
+      <span style={{ marginLeft: 'auto', fontSize: 11, color: 'var(--text-dim)' }}>
         {items.length} / {capacity}
       </span>
     </div>

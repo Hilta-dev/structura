@@ -63,7 +63,7 @@ export function insertAtBeginning(
   const steps: LLStep[] = [];
   let id = 0;
 
-  // line 1 – display prompt
+  // step 0 / line 1 – Ready: show existing list, nothing allocated yet
   steps.push(step(id++, 1, 'Insert at beginning.', [], { visited: 0, changes: 0 }, [], state, capacity));
 
   if (listLength(state) >= capacity) {
@@ -71,19 +71,23 @@ export function insertAtBeginning(
     return steps;
   }
 
-  // line 2 – create newNode with data
-  const newNode: LinkedListNode = { id: newId(), data, next: state.head };
-  steps.push(step(id++, 2, `newNode -> data = ${data}.`, [newNode.id], { visited: 0, changes: 0 }, [], state, capacity));
+  // step 1 / line 2 – Allocate: new node in memory, next = null (not yet linked)
+  const newNode: LinkedListNode = { id: newId(), data, next: null };
+  const allocState: LLState = { head: state.head, nodes: [...state.nodes, newNode] };
+  steps.push(step(id++, 2, `Allocated new node with data = ${data}. next = null.`, [newNode.id], { visited: 0, changes: 0 }, [], allocState, capacity));
 
-  // line 3 – newNode -> next = head
-  steps.push(step(id++, 3, `newNode -> next = head (${state.head ?? 'NULL'}).`, [newNode.id], { visited: 0, changes: 0 }, [], state, capacity));
+  // step 2 / line 3 – Link next: newNode.next ← head (pointer change 1)
+  const linkedNode: LinkedListNode = { ...newNode, next: state.head };
+  const linkedNodes = [...state.nodes, linkedNode];
+  const linkedState: LLState = { head: state.head, nodes: linkedNodes };
+  steps.push(step(id++, 3, `newNode.next ← head (${state.head ?? 'NULL'}). Chain preserved.`, [newNode.id], { visited: 0, changes: 1 }, [], linkedState, capacity));
 
-  // line 4 – head = newNode
-  const newState: LLState = {
+  // step 3 / line 4 – Move head: head ← newNode (pointer change 2)
+  const finalState: LLState = {
     head: newNode.id,
-    nodes: [newNode, ...state.nodes],
+    nodes: [linkedNode, ...state.nodes],
   };
-  steps.push(step(id++, 4, `head = newNode. head is now ${newNode.id} (data=${data}).`, [newNode.id], { visited: 0, changes: 1 }, [], newState, capacity));
+  steps.push(step(id++, 4, `head ← newNode. head is now ${data}. All nodes reachable.`, [newNode.id], { visited: 0, changes: 2 }, [], finalState, capacity));
 
   return steps;
 }

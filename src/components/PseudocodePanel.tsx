@@ -1,37 +1,90 @@
 import { usePlaygroundStore } from '../store/usePlaygroundStore';
 
-export default function PseudocodePanel() {
-  const pseudocode = usePlaygroundStore((s) => s.pseudocode);
-  const steps = usePlaygroundStore((s) => s.steps);
-  const currentStep = usePlaygroundStore((s) => s.currentStep);
+type Props = {
+  pseudocode?: readonly string[];
+  activeLine?: number;
+  explanation?: string;
+};
 
-  const activeLine = steps[currentStep]?.codeLine ?? -1;
-  const explanation = steps[currentStep]?.explanation ?? '';
+export default function PseudocodePanel(props: Props) {
+  const storePseudocode = usePlaygroundStore((s) => s.pseudocode);
+  const steps           = usePlaygroundStore((s) => s.steps);
+  const currentStep     = usePlaygroundStore((s) => s.currentStep);
+
+  const pseudocode  = props.pseudocode  ?? storePseudocode;
+  const activeLine  = props.activeLine  ?? (steps[currentStep]?.codeLine ?? -1);
+  const explanation = props.explanation ?? (steps[currentStep]?.explanation ?? '');
 
   if (pseudocode.length === 0) return null;
 
   return (
-    <div className="absolute top-4 left-4 w-72 rounded-lg bg-gray-800/90 backdrop-blur p-4 text-sm text-gray-200 flex flex-col gap-3">
-      <ol className="font-mono text-xs leading-6 list-none space-y-0.5">
-        {pseudocode.map((line, i) => {
-          const lineNumber = i + 1; // pseudocode is 1-based
-          const isActive = lineNumber === activeLine;
-          return (
-            <li
-              key={i}
-              className={`flex gap-2 rounded px-1 ${isActive ? 'bg-yellow-500/20 text-yellow-300 font-semibold' : 'text-gray-400'}`}
-            >
-              <span className="w-5 text-right shrink-0 select-none opacity-50">{lineNumber}</span>
-              <span>{line}</span>
-            </li>
-          );
-        })}
-      </ol>
+    <div
+      style={{
+        display:        'flex',
+        flexDirection:  'column',
+        height:         '100%',
+        overflow:       'hidden',
+      }}
+    >
+      {/* Panel header */}
+      <div
+        style={{
+          padding:      '10px 14px 8px',
+          borderBottom: '1px solid var(--border)',
+          fontSize:     10,
+          fontWeight:   700,
+          letterSpacing:'0.1em',
+          textTransform:'uppercase',
+          color:        'var(--text-dim)',
+          flexShrink:   0,
+        }}
+      >
+        01 / Pseudocode
+      </div>
 
+      {/* Code listing */}
+      <div style={{ flex: 1, overflowY: 'auto', padding: '10px 14px' }}>
+        <ol style={{ listStyle: 'none', margin: 0, padding: 0, fontFamily: 'var(--font-mono)', fontSize: 11, lineHeight: '20px' }}>
+          {pseudocode.map((line, i) => {
+            const lineNumber = i + 1;
+            const isActive   = lineNumber === activeLine;
+            return (
+              <li
+                key={i}
+                style={{
+                  display:        'flex',
+                  gap:            8,
+                  borderRadius:   'var(--r-sm)',
+                  padding:        '1px 4px',
+                  background:     isActive ? 'var(--active-line-bg)' : 'transparent',
+                  color:          isActive ? 'var(--active-line-text)' : 'var(--text-muted)',
+                  fontWeight:     isActive ? 600 : 400,
+                }}
+              >
+                <span style={{ width: 20, textAlign: 'right', flexShrink: 0, opacity: 0.4, userSelect: 'none' }}>
+                  {lineNumber}
+                </span>
+                <span>{line}</span>
+              </li>
+            );
+          })}
+        </ol>
+      </div>
+
+      {/* Explanation */}
       {explanation && (
-        <p className="text-xs text-gray-300 border-t border-gray-700 pt-2 leading-5">
+        <div
+          style={{
+            borderTop: '1px solid var(--border)',
+            padding:   '10px 14px',
+            fontSize:  11,
+            color:     'var(--text-muted)',
+            lineHeight: 1.6,
+            flexShrink: 0,
+          }}
+        >
           {explanation}
-        </p>
+        </div>
       )}
     </div>
   );
