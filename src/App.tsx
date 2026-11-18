@@ -196,7 +196,7 @@ export default function App() {
             overflow: 'hidden',
           }}
         >
-          <RightPanel structure={structureLabel} />
+          <RightPanel structureId={structure} label={structureLabel} />
         </aside>
       </div>
     </div>
