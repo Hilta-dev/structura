@@ -3,7 +3,7 @@ import { Canvas } from '@react-three/fiber';
 import StackScene from './scene/StackScene';
 import LinkedListScene from './scene/LinkedListScene';
 import StackControls from './components/StackControls';
-import LinkedListControls from './components/LinkedListControls';
+import InsertHeadWalkthrough from './components/InsertHeadWalkthrough';
 import Timeline from './components/Timeline';
 import PseudocodePanel from './components/PseudocodePanel';
 import RightPanel from './components/RightPanel';
@@ -13,9 +13,15 @@ type NavTab = 'playground' | 'predict' | 'bughunter' | 'practice';
 type Structure = 'linkedlist' | 'stack' | 'queue';
 
 function LLPseudocodePanel() {
-  const pseudocode = useLinkedListStore((s) => s.pseudocode);
-  const message = useLinkedListStore((s) => s.message);
-  return <PseudocodePanel pseudocode={pseudocode} activeLine={-1} explanation={message} />;
+  const pseudocode  = useLinkedListStore((s) => s.pseudocode);
+  const message     = useLinkedListStore((s) => s.message);
+  const walkSteps   = useLinkedListStore((s) => s.walkSteps);
+  const walkIndex   = useLinkedListStore((s) => s.walkIndex);
+  // During a walkthrough, highlight the pseudocode line for the current step.
+  const activeLine  = walkSteps.length > 0
+    ? (walkSteps[walkIndex]?.codeLine ?? -1)
+    : -1;
+  return <PseudocodePanel pseudocode={pseudocode} activeLine={activeLine} explanation={message} />;
 }
 
 const NAV_TABS: { id: NavTab; label: string; disabled?: boolean }[] = [
@@ -164,7 +170,7 @@ export default function App() {
           >
             {/* Operation controls */}
             <div style={{ padding: '10px 14px', borderBottom: '1px solid var(--border-subtle)' }}>
-              {structure === 'linkedlist' && <LinkedListControls />}
+              {structure === 'linkedlist' && <InsertHeadWalkthrough />}
               {structure === 'stack'      && <StackControls />}
               {structure === 'queue'      && (
                 <span style={{ color: 'var(--text-dim)', fontSize: 12 }}>Queue coming soon.</span>

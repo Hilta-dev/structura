@@ -236,19 +236,22 @@ function LLCameraRig({ nodeCount }: { nodeCount: number }) {
 
 // ── Scene root ────────────────────────────────────────────────────────────
 export default function LinkedListScene() {
-  const listState   = useLinkedListStore((s) => s.listState);
-  const highlights  = useLinkedListStore((s) => s.highlights);
+  const listState     = useLinkedListStore((s) => s.listState);
+  const highlights    = useLinkedListStore((s) => s.highlights);
   const findHighlight = useLinkedListStore((s) => s.findHighlight);
-  const message     = useLinkedListStore((s) => s.message);
+  const message       = useLinkedListStore((s) => s.message);
+  const walkSteps     = useLinkedListStore((s) => s.walkSteps);
+  const walkIndex     = useLinkedListStore((s) => s.walkIndex);
 
-  // Track which nodes existed before the last operation to identify new nodes.
-  // We detect new nodes as those whose id was not present in the previous render's
-  // node list. Since LinkedListScene gets the final committed state (applyFinal
-  // clears highlights), we use a ref to compare against the previous node id set.
+  // During a walkthrough the step's highlights[0] is the new-node id — use
+  // that directly so purple appears as soon as Allocate is shown.
+  // Outside a walkthrough fall back to the prev-render frame-diff heuristic.
+  const walkActive   = walkSteps.length > 0;
+  const walkNewId    = walkActive ? (walkSteps[walkIndex]?.highlights[0] ?? null) : null;
+
   const prevNodeIdsRef = useRef<Set<string>>(new Set());
   const prevNodeIds    = prevNodeIdsRef.current;
-  // Update after render via a ref-swap (we capture current for this render first)
-  const currentIds = new Set(listState.nodes.map((n) => n.id));
+  const currentIds     = new Set(listState.nodes.map((n) => n.id));
 
   const view: LinkedListView = {
     kind:     'linkedList',
@@ -257,7 +260,6 @@ export default function LinkedListScene() {
     capacity: 8,
   };
 
-  // Build ordered array from head
   const ordered: LinkedListNode[] = [];
   let cur = view.head;
   while (cur !== null) {
@@ -274,7 +276,6 @@ export default function LinkedListScene() {
 
   const headAddress = view.head !== null ? String(getAddress(view.head)) : 'NULL';
 
-  // Update prevNodeIds after each render
   useEffect(() => {
     prevNodeIdsRef.current = currentIds;
   });
@@ -290,7 +291,9 @@ export default function LinkedListScene() {
       <HeadBox headAddress={headAddress} />
 
       {ordered.map((node, i) => {
-        const isNewNode  = !prevNodeIds.has(node.id);
+        const isNewNode  = walkActive
+          ? node.id === walkNewId
+          : !prevNodeIds.has(node.id);
         const isFound    = node.id === findHighlight;
         const isVisited  = !isFound && !isNewNode && highlightSet.has(node.id);
         const kind: NodeKind = isNewNode ? 'new'
@@ -309,7 +312,7 @@ export default function LinkedListScene() {
               index={i}
               kind={kind}
               nextAddress={nextAddress}
-              prevNodeIds={prevNodeIds}
+              prevNodeIds={walkActive ? new Set() : prevNodeIds}
             />
             {i < ordered.length - 1 && <Arrow fromIndex={i} />}
           </group>

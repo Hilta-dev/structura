@@ -65,13 +65,11 @@ export default function RightPanel({ structure }: Props) {
           style={{
             marginTop:    8,
             padding:      '6px 14px',
-            background:   'var(--accent-dim)',
+            background:   'var(--accent)',
             border:       '1px solid var(--accent)',
             borderRadius: 'var(--r-sm)',
             fontSize:     11,
             color:        'var(--accent-text)',
-            background:   'var(--accent)',
-            border:       '1px solid var(--accent)',
           }}
         >
           Coming soon

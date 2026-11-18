@@ -43,6 +43,8 @@ export function getAddressMap(): ReadonlyMap<string, number> {
   return _addressMap;
 }
 
+type LLStep = ReturnType<typeof insertAtBeginning>[number];
+
 type LLStoreState = {
   listState: LLState;
   capacity: number;
@@ -54,6 +56,12 @@ type LLStoreState = {
   findHighlight: string | null;
   traverseResult: string;
   findResult: string;
+  // walkthrough: the steps of one operation, shown one at a time
+  walkSteps: LLStep[];
+  walkIndex: number;
+  // the list as it was before the walkthrough started, so Replay can start again
+  walkBase: LLState | null;
+  walkPlaying: boolean;
 };
 
 type LLStoreActions = {
@@ -68,11 +76,26 @@ type LLStoreActions = {
   doDeleteAtPosition: (position: number) => void;
   doTraverse: () => void;
   doFind: (x: number) => void;
+  startInsertHeadWalkthrough: (data: number) => void;
+  walkGoTo: (index: number) => void;
+  walkNext: () => void;
+  walkBack: () => void;
+  walkToggle: () => void;
 };
 
 const EMPTY: LLState = { head: null, nodes: [] };
 
-type LLStep = ReturnType<typeof insertAtBeginning>[number];
+const WALK_OFF: Pick<LLStoreState, 'walkSteps' | 'walkIndex' | 'walkBase' | 'walkPlaying'> = {
+  walkSteps: [],
+  walkIndex: 0,
+  walkBase: null,
+  walkPlaying: false,
+};
+
+// the id of the node being inserted in the current walkthrough (null if none)
+export function selectWalkNewNodeId(s: LLStoreState): string | null {
+  return s.walkSteps.length > 1 ? s.walkSteps[1].highlights[0] ?? null : null;
+}
 
 function applyFinal(
   steps: LLStep[],
@@ -84,6 +107,26 @@ function applyFinal(
     listState: { head: v.head, nodes: v.nodes },
     pseudocode,
     message: last.error ?? last.explanation,
+    highlights: [],
+    findHighlight: null,
+    traverseResult: '',
+    findResult: '',
+    ...WALK_OFF,
+  };
+}
+
+function showStep(
+  steps: LLStep[],
+  index: number,
+  pseudocode: readonly string[],
+): Partial<LLStoreState> {
+  const s = steps[index];
+  const v = s.view as LinkedListView;
+  return {
+    walkIndex: index,
+    listState: { head: v.head, nodes: v.nodes },
+    pseudocode,
+    message: s.error ?? s.explanation,
     highlights: [],
     findHighlight: null,
     traverseResult: '',
@@ -104,15 +147,16 @@ export const useLinkedListStore = create<LLStoreState & LLStoreActions>((set, ge
   findHighlight: null,
   traverseResult: '',
   findResult: '',
+  ...WALK_OFF,
 
   setCapacity: (cap) => {
     _resetAddresses();
-    set({ capacity: cap, listState: EMPTY, pseudocode: [], message: '', highlights: [], findHighlight: null, traverseResult: '', findResult: '' });
+    set({ capacity: cap, listState: EMPTY, pseudocode: [], message: '', highlights: [], findHighlight: null, traverseResult: '', findResult: '', ...WALK_OFF });
   },
 
   clear: () => {
     _resetAddresses();
-    set({ listState: EMPTY, pseudocode: [], message: '', highlights: [], findHighlight: null, traverseResult: '', findResult: '' });
+    set({ listState: EMPTY, pseudocode: [], message: '', highlights: [], findHighlight: null, traverseResult: '', findResult: '', ...WALK_OFF });
   },
 
   example: () => {
@@ -135,6 +179,7 @@ export const useLinkedListStore = create<LLStoreState & LLStoreActions>((set, ge
       findHighlight: null,
       traverseResult: '',
       findResult: '',
+      ...WALK_OFF,
     });
   },
 
@@ -224,5 +269,46 @@ export const useLinkedListStore = create<LLStoreState & LLStoreActions>((set, ge
       findHighlight: foundNodeId,
       findResult,
     });
+  },
+
+  startInsertHeadWalkthrough: (data) => {
+    const { walkBase, walkSteps, listState, capacity } = get();
+    // if a walkthrough is already showing, start again from the list before it
+    const base = walkSteps.length > 0 && walkBase ? walkBase : listState;
+    const steps = insertAtBeginning(base, capacity, data);
+    const final = steps[steps.length - 1];
+    if (!final.error) assignAddresses(final.view as LinkedListView);
+    set({
+      walkSteps: steps,
+      walkBase: base,
+      walkPlaying: false,
+      ...showStep(steps, 0, insertAtBeginningPseudocode),
+    });
+  },
+
+  walkGoTo: (index) => {
+    const { walkSteps, pseudocode } = get();
+    if (walkSteps.length === 0) return;
+    const i = Math.max(0, Math.min(index, walkSteps.length - 1));
+    const atEnd = i === walkSteps.length - 1;
+    set({
+      ...showStep(walkSteps, i, pseudocode),
+      ...(atEnd ? { walkPlaying: false } : {}),
+    });
+  },
+
+  walkNext: () => get().walkGoTo(get().walkIndex + 1),
+
+  walkBack: () => get().walkGoTo(get().walkIndex - 1),
+
+  walkToggle: () => {
+    const { walkSteps, walkIndex, walkPlaying } = get();
+    if (walkSteps.length === 0) return;
+    if (walkPlaying) {
+      set({ walkPlaying: false });
+      return;
+    }
+    if (walkIndex >= walkSteps.length - 1) get().walkGoTo(0);
+    set({ walkPlaying: true });
   },
 }));
