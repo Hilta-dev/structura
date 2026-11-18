@@ -137,3 +137,97 @@ describe('setSpeed', () => {
     expect(usePlaygroundStore.getState().speed).toBe(0.5);
   });
 });
+
+describe('setCapacity', () => {
+  it('updates capacity', () => {
+    usePlaygroundStore.getState().setCapacity(5);
+    expect(usePlaygroundStore.getState().capacity).toBe(5);
+  });
+
+  it('leaves steps and other state untouched', () => {
+    usePlaygroundStore.getState().loadSteps(steps, []);
+    usePlaygroundStore.getState().setCapacity(10);
+    expect(usePlaygroundStore.getState().steps).toHaveLength(3);
+    expect(usePlaygroundStore.getState().capacity).toBe(10);
+  });
+});
+
+describe('queue steps (QueueView)', () => {
+  function makeQueueStep(id: number): Step {
+    return {
+      id,
+      codeLine: 1,
+      explanation: `queue step ${id}`,
+      highlights: ['front'],
+      counters: { visited: 0, changes: 0 },
+      view: { kind: 'queue', items: [], front: 0, rear: -1, capacity: 5 },
+    };
+  }
+
+  it('loadSteps accepts queue-view steps', () => {
+    const qSteps = [makeQueueStep(0), makeQueueStep(1)];
+    usePlaygroundStore.getState().loadSteps(qSteps, ['enqueue(data){', '}']);
+    const s = usePlaygroundStore.getState();
+    expect(s.steps).toHaveLength(2);
+    expect(s.steps[0].view.kind).toBe('queue');
+  });
+
+  it('next advances through queue steps', () => {
+    const qSteps = [makeQueueStep(0), makeQueueStep(1), makeQueueStep(2)];
+    usePlaygroundStore.getState().loadSteps(qSteps, []);
+    usePlaygroundStore.getState().next();
+    expect(usePlaygroundStore.getState().currentStep).toBe(1);
+  });
+
+  it('prev goes back through queue steps', () => {
+    const qSteps = [makeQueueStep(0), makeQueueStep(1)];
+    usePlaygroundStore.getState().loadSteps(qSteps, []);
+    usePlaygroundStore.setState({ currentStep: 1 });
+    usePlaygroundStore.getState().prev();
+    expect(usePlaygroundStore.getState().currentStep).toBe(0);
+  });
+
+  it('pseudocode is stored alongside queue steps', () => {
+    const pseudo = ['enqueue(data){', '  IF(rear == size - 1) THEN'];
+    const qSteps = [makeQueueStep(0)];
+    usePlaygroundStore.getState().loadSteps(qSteps, pseudo);
+    expect(usePlaygroundStore.getState().pseudocode).toEqual(pseudo);
+  });
+
+  it('loading new queue steps resets currentStep to 0', () => {
+    const qSteps = [makeQueueStep(0), makeQueueStep(1)];
+    usePlaygroundStore.getState().loadSteps(qSteps, []);
+    usePlaygroundStore.setState({ currentStep: 1 });
+    usePlaygroundStore.getState().loadSteps([makeQueueStep(0)], []);
+    expect(usePlaygroundStore.getState().currentStep).toBe(0);
+  });
+
+  it('play sets isPlaying true for queue steps', () => {
+    usePlaygroundStore.getState().loadSteps([makeQueueStep(0), makeQueueStep(1)], []);
+    usePlaygroundStore.getState().play();
+    expect(usePlaygroundStore.getState().isPlaying).toBe(true);
+  });
+
+  it('pause stops playback for queue steps', () => {
+    usePlaygroundStore.getState().loadSteps([makeQueueStep(0), makeQueueStep(1)], []);
+    usePlaygroundStore.getState().play();
+    usePlaygroundStore.getState().pause();
+    expect(usePlaygroundStore.getState().isPlaying).toBe(false);
+  });
+
+  it('goTo clamps within queue step bounds', () => {
+    const qSteps = [makeQueueStep(0), makeQueueStep(1), makeQueueStep(2)];
+    usePlaygroundStore.getState().loadSteps(qSteps, []);
+    usePlaygroundStore.getState().goTo(99);
+    expect(usePlaygroundStore.getState().currentStep).toBe(2);
+  });
+
+  it('next stops at last queue step and clears isPlaying', () => {
+    const qSteps = [makeQueueStep(0), makeQueueStep(1)];
+    usePlaygroundStore.getState().loadSteps(qSteps, []);
+    usePlaygroundStore.setState({ currentStep: 0, isPlaying: true });
+    usePlaygroundStore.getState().next();
+    expect(usePlaygroundStore.getState().isPlaying).toBe(false);
+    expect(usePlaygroundStore.getState().currentStep).toBe(1);
+  });
+});

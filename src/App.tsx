@@ -2,12 +2,16 @@ import { useState } from 'react';
 import { Canvas } from '@react-three/fiber';
 import StackScene from './scene/StackScene';
 import LinkedListScene from './scene/LinkedListScene';
+import QueueScene from './scene/QueueScene';
 import StackControls from './components/StackControls';
+import QueueControls from './components/QueueControls';
 import InsertHeadWalkthrough from './components/InsertHeadWalkthrough';
 import Timeline from './components/Timeline';
 import PseudocodePanel from './components/PseudocodePanel';
+import StepCaption from './components/StepCaption';
 import RightPanel from './components/RightPanel';
 import { useLinkedListStore } from './store/useLinkedListStore';
+import { usePlaygroundStore } from './store/usePlaygroundStore';
 
 type NavTab = 'playground' | 'predict' | 'bughunter' | 'practice';
 type Structure = 'linkedlist' | 'stack' | 'queue';
@@ -34,14 +38,21 @@ const NAV_TABS: { id: NavTab; label: string; disabled?: boolean }[] = [
 const STRUCTURES: { id: Structure; label: string; disabled?: boolean }[] = [
   { id: 'linkedlist', label: 'Linked list' },
   { id: 'stack',      label: 'Stack' },
-  { id: 'queue',      label: 'Queue',       disabled: true },
+  { id: 'queue',      label: 'Queue' },
 ];
 
 export default function App() {
-  const [navTab, setNavTab]     = useState<NavTab>('playground');
+  const [navTab, setNavTab]       = useState<NavTab>('playground');
   const [structure, setStructure] = useState<Structure>('linkedlist');
 
   const structureLabel = STRUCTURES.find((s) => s.id === structure)?.label ?? '';
+
+  function handleStructureChange(id: Structure) {
+    if (id === structure) return;
+    setStructure(id);
+    // reset the shared playground store when switching tabs
+    usePlaygroundStore.getState().loadSteps([], []);
+  }
 
   return (
     <div
@@ -101,7 +112,7 @@ export default function App() {
             <button
               key={s.id}
               disabled={s.disabled}
-              onClick={() => !s.disabled && setStructure(s.id)}
+              onClick={() => !s.disabled && handleStructureChange(s.id)}
               style={{
                 color:        s.disabled ? 'var(--text-dim)' : structure === s.id ? 'var(--text)' : 'var(--text-muted)',
                 background:   structure === s.id && !s.disabled ? 'var(--accent-dim)' : 'transparent',
@@ -137,9 +148,7 @@ export default function App() {
         >
           {structure === 'linkedlist' && <LLPseudocodePanel />}
           {structure === 'stack'      && <PseudocodePanel />}
-          {structure === 'queue'      && (
-            <div style={{ padding: 20, color: 'var(--text-muted)', fontSize: 12 }}>Queue coming soon.</div>
-          )}
+          {structure === 'queue'      && <PseudocodePanel />}
         </aside>
 
         {/* ── MIDDLE PANEL: 3D scene + timeline ───────────────────────── */}
@@ -147,7 +156,7 @@ export default function App() {
           style={{ background: 'var(--bg)' }}
           className="flex flex-col flex-1 min-w-0 relative"
         >
-          {/* 3D canvas area */}
+          {/* 3D canvas area — flex-1 so it fills remaining space above caption */}
           <div className="relative flex-1 min-h-0">
             <div className={`absolute inset-0 ${structure === 'linkedlist' ? '' : 'hidden'}`}>
               <Canvas camera={{ fov: 50 }}>
@@ -159,7 +168,15 @@ export default function App() {
                 <StackScene />
               </Canvas>
             </div>
+            <div className={`absolute inset-0 ${structure === 'queue' ? '' : 'hidden'}`}>
+              <Canvas camera={{ fov: 50 }}>
+                <QueueScene />
+              </Canvas>
+            </div>
           </div>
+
+          {/* caption part — StepCaption sits between the 3D scene and the controls bar */}
+          <StepCaption structure={structure} />
 
           {/* Controls + timeline bar at bottom */}
           <div
@@ -172,13 +189,11 @@ export default function App() {
             <div style={{ padding: '10px 14px', borderBottom: '1px solid var(--border-subtle)' }}>
               {structure === 'linkedlist' && <InsertHeadWalkthrough />}
               {structure === 'stack'      && <StackControls />}
-              {structure === 'queue'      && (
-                <span style={{ color: 'var(--text-dim)', fontSize: 12 }}>Queue coming soon.</span>
-              )}
+              {structure === 'queue'      && <QueueControls />}
             </div>
 
-            {/* Timeline (stack only for now) */}
-            {structure === 'stack' && (
+            {/* Timeline for stack and queue */}
+            {(structure === 'stack' || structure === 'queue') && (
               <div style={{ padding: '8px 14px' }}>
                 <Timeline />
               </div>

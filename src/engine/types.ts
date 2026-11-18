@@ -12,7 +12,13 @@ export type StackView = {
   items: { id: string; value: number }[];
   capacity: number;
 };
-export type QueueView = { kind: 'queue' };
+export type QueueView = {
+  kind: 'queue';
+  items: { id: string; value: number }[];
+  front: number;
+  rear: number;
+  capacity: number;
+};
 
 export type Step = {
   id: number;

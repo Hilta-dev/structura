@@ -187,17 +187,19 @@ export default function InsertHeadWalkthrough() {
 
             <span style={divider} />
 
-            {/* Counters */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 1, flexShrink: 0 }}>
-              <span style={{ fontSize: 10, fontWeight: 600, letterSpacing: '0.07em', textTransform: 'uppercase', color: 'var(--text-dim)', whiteSpace: 'nowrap' }}>
-                Nodes visited&nbsp;&nbsp;<strong style={{ fontSize: 15, color: 'var(--text)' }}>{counters.visited}</strong>
+            {/* Counters — increased readability */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 2, flexShrink: 0 }}>
+              <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--text-dim)', whiteSpace: 'nowrap' }}>
+                Nodes visited
               </span>
+              <strong style={{ fontSize: 18, fontWeight: 700, color: 'var(--accent)', lineHeight: 1 }}>{counters.visited}</strong>
             </div>
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 1, flexShrink: 0 }}>
-              <span style={{ fontSize: 10, fontWeight: 600, letterSpacing: '0.07em', textTransform: 'uppercase', color: 'var(--text-dim)', whiteSpace: 'nowrap' }}>
-                Pointer changes&nbsp;&nbsp;<strong style={{ fontSize: 15, color: 'var(--text)' }}>{counters.changes}</strong>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 2, flexShrink: 0 }}>
+              <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--text-dim)', whiteSpace: 'nowrap' }}>
+                Pointer changes
               </span>
+              <strong style={{ fontSize: 18, fontWeight: 700, color: 'var(--accent)', lineHeight: 1 }}>{counters.changes}</strong>
             </div>
           </>
         )}
